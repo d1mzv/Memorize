@@ -8,42 +8,118 @@
 import SwiftUI
 
 struct ContentView: View {
-    var emojisTravel = ["🛫", "✈️", "🛬", "🚀", "🛸", "🛶", "🛥️", "⛵", "🚤", "🚢"]
+
+    let emojis = [
+        "travel": ["🌍", "🛫", "🛬", "🌆", "🌇", "🌉", "🚅", "🛣️", "🚗", "🛵", "🚀", "🛸", "🗺️", "🏞️", "🏰", "🏖️", "🏜️", "🛶", "🏕️", "🚤", "🚁", "🚂"],
+        "food": ["🍔", "🍟", "🌮", "🌯", "🍕", "🍜", "🍱", "🥗", "🥞", "🧇", "🥪", "🍳", "🍣", "🍗", "🍩", "🍦", "🍤"],
+        "activities": ["🏊‍♂️", "🚴‍♂️", "🧗‍♀️", "🤸‍♂️", "🎨", "🎭", "🎲", "🎳", "🎮", "🎬", "🎤", "🎧", "📚", "🎁", "🎉", "🚣‍♀️", "🏋️‍♀️", "🏇", "🎿", "🏓"]
+    ]
     
     @State var emojiCount = 10
+    @State var selectedEmojis = ["🛫", "✈️", "🛬", "🚀", "🛸", "🛶", "🛥️", "⛵", "🚤", "🚢"]
+    
     var body: some View {
         VStack {
+            Text("Memo App")
+                .font(.largeTitle)
+                .padding(.top)
             ScrollView {
-                LazyVGrid (columns: [GridItem(.adaptive(minimum: 80))]) {
-                    ForEach(emojisTravel[0..<emojiCount], id: \.self) {emoji in
+                
+//                GeometryReader { (geometry) in
+//                                self.makeView(geometry)
+                
+                LazyVGrid (columns: [GridItem(.adaptive(minimum: widthThatBestFits(cardCount: emojiCount)))]) {
+                    ForEach(selectedEmojis[0..<emojiCount], id: \.self) {emoji in
                         CardView(content: emoji).aspectRatio(2/3, contentMode: .fit).frame(maxHeight:.infinity)
                     }
                 }
                 .foregroundColor(.red)
             }
+            .background(
+                GeometryReader { proxy in
+                    Color.clear.onAppear {
+                        print(proxy.size.height, proxy.size.width)
+                        let mainViewHeight = proxy.size.height
+                        let mainViewWidth = proxy.size.width
+                    }
+                }
+            )
+            // 60-5, 70-4, 90-3, 120-2
+            // 609.0485026041667
+            // 215.04850260416663 718.0
             Spacer()
             HStack {
-                remove
                 Spacer()
-                add
+                loadTravelEmojis
+                Spacer()
+                loadFoodEmojis
+                Spacer()
+                loadAcrivityEmojis
+                Spacer()
             }
             .font(.largeTitle)
             .padding(.horizontal)
         }
         .padding(.horizontal)
     }
-    var add: some View {
-        Button {
-            emojiCount = min(emojiCount + 1, emojisTravel.count)
+
+    
+    var loadTravelEmojis: some View {
+        return Button {
+            selectedEmojis = emojis["travel"]!.shuffled()
+            emojiCount = selectedEmojis.count
+            let randomCount = Int.random(in: 4..<emojiCount)
+            emojiCount = randomCount
         } label: {
-            Image(systemName: "plus.circle")
+            VStack {
+                Image(systemName: "car")
+                Text("Travel")
+                    .font(.body)
+            }
         }
     }
-    var remove: some View {
-        Button {
-            emojiCount = max(emojiCount - 1, 1)
+    var loadFoodEmojis: some View {
+        return Button {
+            selectedEmojis = emojis["food"]!.shuffled()
+            emojiCount = selectedEmojis.count
+            let randomCount = Int.random(in: 4..<emojiCount)
+            emojiCount = randomCount
         } label: {
-            Image(systemName: "minus.circle")
+            VStack {
+                Image(systemName: "carrot")
+                Text("Food")
+                    .font(.body)
+            }
+        }
+    }
+    var loadAcrivityEmojis: some View {
+        return Button {
+            selectedEmojis = emojis["activities"]!.shuffled()
+            emojiCount = selectedEmojis.count
+            let randomCount = Int.random(in: 4..<emojiCount)
+            emojiCount = randomCount
+        } label: {
+            VStack {
+                Image(systemName: "baseball")
+                Text("Activities")
+                    .font(.body)
+            }
+        }
+    }
+    
+    func widthThatBestFits(cardCount: Int) -> CGFloat {
+        let col = sqrt(Double(cardCount)).rounded(.up)
+        switch col {
+        case 2:
+            return 120
+        case 3:
+            return 90
+        case 4:
+            return 70
+        case 5:
+            return 60
+        default:
+            return 60
         }
     }
     
