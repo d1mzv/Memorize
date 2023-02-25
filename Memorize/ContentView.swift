@@ -8,15 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
-
-    let emojis = [
-        "travel": ["🌍", "🛫", "🛬", "🌆", "🌇", "🌉", "🚅", "🛣️", "🚗", "🛵", "🚀", "🛸", "🗺️", "🏞️", "🏰", "🏖️", "🏜️", "🛶", "🏕️", "🚤", "🚁", "🚂"],
-        "food": ["🍔", "🍟", "🌮", "🌯", "🍕", "🍜", "🍱", "🥗", "🥞", "🧇", "🥪", "🍳", "🍣", "🍗", "🍩", "🍦", "🍤"],
-        "activities": ["🏊‍♂️", "🚴‍♂️", "🧗‍♀️", "🤸‍♂️", "🎨", "🎭", "🎲", "🎳", "🎮", "🎬", "🎤", "🎧", "📚", "🎁", "🎉", "🚣‍♀️", "🏋️‍♀️", "🏇", "🎿", "🏓"]
-    ]
     
-    @State var emojiCount = 10
-    @State var selectedEmojis = ["🛫", "✈️", "🛬", "🚀", "🛸", "🛶", "🛥️", "⛵", "🚤", "🚢"]
+    @ObservedObject var viewModel: EmojiMemoryGame
     
     var body: some View {
         VStack {
@@ -24,37 +17,24 @@ struct ContentView: View {
                 .font(.largeTitle)
                 .padding(.top)
             ScrollView {
-                
-//                GeometryReader { (geometry) in
-//                                self.makeView(geometry)
-                
-                LazyVGrid (columns: [GridItem(.adaptive(minimum: widthThatBestFits(cardCount: emojiCount)))]) {
-                    ForEach(selectedEmojis[0..<emojiCount], id: \.self) {emoji in
-                        CardView(content: emoji).aspectRatio(2/3, contentMode: .fit).frame(maxHeight:.infinity)
+                LazyVGrid (columns: [GridItem(.adaptive(minimum: widthThatBestFits(cardCount: viewModel.cards.count)))]) {
+                    ForEach(viewModel.cards) {card in
+                        CardView(card: card)
+                            .aspectRatio(2/3, contentMode: .fit)
+                            .frame(maxHeight:.infinity)
+                            .onTapGesture {
+                                viewModel.chooseCard(card)
+                            }
                     }
                 }
                 .foregroundColor(.red)
             }
-            .background(
-                GeometryReader { proxy in
-                    Color.clear.onAppear {
-                        print(proxy.size.height, proxy.size.width)
-                        let mainViewHeight = proxy.size.height
-                        let mainViewWidth = proxy.size.width
-                    }
-                }
-            )
-            // 60-5, 70-4, 90-3, 120-2
-            // 609.0485026041667
-            // 215.04850260416663 718.0
             Spacer()
             HStack {
                 Spacer()
-                loadTravelEmojis
-                Spacer()
-                loadFoodEmojis
-                Spacer()
-                loadAcrivityEmojis
+//                newGame.onTapGesture {
+//                    EmojiMemoryGame.createMemoryGame()
+//                }
                 Spacer()
             }
             .font(.largeTitle)
@@ -64,45 +44,14 @@ struct ContentView: View {
     }
 
     
-    var loadTravelEmojis: some View {
+    var newGame: some View {
         return Button {
-            selectedEmojis = emojis["travel"]!.shuffled()
-            emojiCount = selectedEmojis.count
-            let randomCount = Int.random(in: 4..<emojiCount)
-            emojiCount = randomCount
         } label: {
             VStack {
-                Image(systemName: "car")
-                Text("Travel")
+                Image(systemName: "goforward")
+                Text("Restart")
                     .font(.body)
-            }
-        }
-    }
-    var loadFoodEmojis: some View {
-        return Button {
-            selectedEmojis = emojis["food"]!.shuffled()
-            emojiCount = selectedEmojis.count
-            let randomCount = Int.random(in: 4..<emojiCount)
-            emojiCount = randomCount
-        } label: {
-            VStack {
-                Image(systemName: "carrot")
-                Text("Food")
-                    .font(.body)
-            }
-        }
-    }
-    var loadAcrivityEmojis: some View {
-        return Button {
-            selectedEmojis = emojis["activities"]!.shuffled()
-            emojiCount = selectedEmojis.count
-            let randomCount = Int.random(in: 4..<emojiCount)
-            emojiCount = randomCount
-        } label: {
-            VStack {
-                Image(systemName: "baseball")
-                Text("Activities")
-                    .font(.body)
+                    
             }
         }
     }
@@ -126,40 +75,31 @@ struct ContentView: View {
 }
 
 struct CardView: View {
-    var content: String
-    @State var isFaceUp: Bool = true
+//    var content: String
+    let card: MemoryGame<String>.Card
 
     var body: some View {
         ZStack {
             let shape = RoundedRectangle(cornerRadius:20)
-            if isFaceUp {
+            if card.isFaceUp {
                 shape.fill().foregroundColor(.white)
                 shape.strokeBorder(lineWidth: 3)
-                Text(content).font(.largeTitle)
+                Text(card.content).font(.largeTitle)
+            } else if card.isMatched {
+                shape.opacity(0)
             } else {
                 shape.fill()
             }
         }
-        .onTapGesture {
-            isFaceUp = !isFaceUp
-        }
     }
 }
 
-//        VStack {
-//            Image(systemName: "globe")
-//                .imageScale(.large)
-//                .foregroundColor(.accentColor)
-//            Text("Hello, world!")
-//        }
-//        .padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
-
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        let game = EmojiMemoryGame()
+        ContentView(viewModel: game)
             .preferredColorScheme(.dark)
-        ContentView()
+        ContentView(viewModel: game)
             .preferredColorScheme(.light)
     }
 }
